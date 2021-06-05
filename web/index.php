@@ -1,3 +1,50 @@
+<?php
+require_once(dirname(__FILE__).'/../config/config.php');
+require_once(dirname(__FILE__).'/functions.php');
+
+//１．ログイン状態をチェック
+session_start();
+
+if(!isset($_SESSION['USER'])){
+  // ログインされていない場合はログイン画面へ
+  header('Location:/login.php');
+  exit;
+}
+
+// ログインの情報をセッションから取得
+$session_user = $_SESSION['USER'];
+
+var_dump($session_user);
+exit;
+
+// ２．ユーザーの業務日報データを取得
+$yyyymm = date('Y-m');
+
+$pdo = connect_db();
+
+$sql = "SELECT * FROM work WHERE user_id = :user_id AND DATE_FORMAT(date,'%y-%m') = :date";
+$stmt = $pdo->prepare($sql);
+$stmt->bindValue(':user_id',(int)$session_user['id'],PDO::PARAM_INT);
+$stmt->bindValue(':date',$yyyymm,PDO::PARAM_STR);
+$stmt->execute();
+$work_list = $stmt->fetchAll();
+
+// echo'<pre>';
+// var_dump($work_list);
+// echo'</pre>';
+// exit;
+
+
+// 業務日報データをテーブルにリスト表示
+
+
+?>
+
+
+
+
+
+
 <!doctype html>
 <html lang="ja">
   <head>

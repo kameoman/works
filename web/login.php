@@ -1,12 +1,21 @@
 <?php
+require_once(dirname(__FILE__).'/../config/config.php');
+require_once(dirname(__FILE__).'/functions.php');
+
+session_start();
+
+if(isset($_SESSION['USER'])){
+  // ログイン済みの場合はホーム画面へ
+  header('Location:/');
+  exit;
+}
+
  if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
-  $user_no= $_POST['user_no'];
+  $user_no = $_POST['user_no'];
   $password = $_POST['password'];
 
-    // echo $user_no.'<br>';
-    // echo $password;
-    // exit;
+
     // 2.バリデーションチェック
     $err = array();
 
@@ -19,25 +28,31 @@
     }
 
     if(empty($err)){
-      $param ='mysql:dbname='.DB_NAME.';host='.DB_HOST;
-      $pdo = new PDO($param,DB_USER,DB_PASSWORD);
-      $pdo->query('SET NAMES utf8;');
-      $sql = "SELECT user_no,name FROM user WHERE user_no AND password = :password LIMIT 1";
+      $pdo = connect_db();
+
+
+      $sql = "SELECT id, user_no,name FROM user WHERE user_no = :user_no AND password = :password LIMIT 1";
       $stmt = $pdo->prepare($sql);
       $stmt->bindValue(':user_no',$user_no,PDO::PARAM_STR);
       $stmt->bindValue(':password',$password,PDO::PARAM_STR);
       $stmt->execute();
       $user = $stmt->fetch();
 
-  var_dump($user);
-  exit;
+      if($user){
+//     //4.ログイン処理（セッションに保存）
+       $_SESSION['USER'] = $user;
+//     //5.HOME画面へ遷移
+       header('Location:/');
+       exit;
+
+      }else{
+        $err['password']='認証に失敗しました';
+      }
 
     }
-    //4.ログイン処理（セッションに保存）
 
-    //5.HOME画面へ遷移
  }else{
-   //画面初回アクセス時
+//    //画面初回アクセス時
   $user_no = "";
   $password = "";
 
@@ -61,7 +76,6 @@
     <title>ログイン|WoRks</title>
   </head>
   <body class="text-center bg-light">
-
   <div>
    <img class="mb-4"src="/img/logo.jpeg" alt="WORKS" width="300" height="80">
   </div>
@@ -69,7 +83,7 @@
     <form class="border rounded bg-white form-login" method="post">
     <h1 class="h3 my-3">Login</h1>
   <div class="form-group pt-3">
-    <input type="text" class="form-control rounded-pill<?php if(isset($err['user_no']))echo 'is-invalid';?>"name="user_no" value="<?= $user_no ?>"  placeholder="社員番号">
+    <input type="text" class="form-control rounded-pill<?php if(isset($err['user_no']))echo 'is-invalid';?>"name="user_no"placeholder="社員番号">
     <div class="invalid-feedback"><?= $err['user_no']?></div>
   </div>
   <div class="form-group">
