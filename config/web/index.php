@@ -18,8 +18,13 @@ $session_user = $_SESSION['USER'];
 // exit;
 
 // ２．ユーザーの業務日報データを取得
-$yyyymm = date('2021-6');
-
+if(isset($_GET['m'])){
+  $yyyymm = $_GET['m'];
+  $day_count = date('t',strtotime($yyyymm));
+}else{
+  $yyyymm = date('2021-6');
+  $day_count = date('t');
+}
 $pdo = connect_db();
 
 $sql = "SELECT date,id,start_time,end_time,break_time,comment FROM work WHERE user_id = :user_id AND DATE_FORMAT(date,'2021-6') = :date";
@@ -38,9 +43,6 @@ $work_list = $stmt->fetchAll(PDO::FETCH_UNIQUE);
 $day_count = date('t');
 
 ?>
-
-
-
 
 
 
@@ -70,8 +72,12 @@ $day_count = date('t');
 
     <form class="border rounded bg-white form-time-table" action="index.php">
     <h1 class="h3 my-3">月別リスト</h1>
-  　<select class="form-control rounded-pill mb-3" id="exampleFormControlSelect1">
-      <option>2020/11</option>
+  　<select class="form-control rounded-pill mb-3" name="m" onchange="submit(this.form)">
+      <option value="<?= date('Y-m') ?>"><?= date('Y/m') ?></option>
+      <?php for($i = 1;$i <12;$i++):?>
+        <?php $target_yyyymm = strtotime("-{$i}months");?>
+      <option value="<?= date('Y-m',$target_yyyymm) ?>"<?php if($yyyymm == date('Y-m',$target_yyyymm))echo 'selected'?>><?= date('Y/m',$target_yyyymm) ?></option>
+      <?php endfor;?>
     </select>
 
     <table class="table table-bordered">
@@ -87,15 +93,34 @@ $day_count = date('t');
   </thead>
   <tbody>
     <?php for ($i = 1; $i<=$day_count;$i++):?>
-      <? php
-        $work = $work_list[date('Y-m-d',strtotime($yyyymm.'-'.$i))];
-        $start_time = $work['start_time'];
-        $end_time = $work['end_time'];
-        $break_time = $work['break_time'];
-        $comment = $work['comment'];
+      <?php
+        $start_time = '';
+        $end_time = '';
+        $break_time = '';
+        $comment = '';
+
+        if(isset($work_list[date('Y-m-d',strtotime($yyyymm.'-'.$i))])){
+          $work = $work_list[date('Y-m-d',strtotime($yyyymm.'-'.$i))];
+
+          if($work["start_time"]){
+            $start_time = date('H:i',strtotime($work['start_time']));
+          }
+          if($work["end_time"]){
+            $end_time = date('H:i',strtotime($work['end_time']));
+          }
+          if($work["break_time"]){
+            $break_time = date('H:i',strtotime($work['break_time']));
+
+          }
+
+          if($work['comment']){
+            $comment = mb_strimwidth($work['comment'],0,40,'...');
+
+          }
+        }
       ?>
     <tr>
-      <th scope="row"><?= $yyyymm.'-'.$i?></th>
+      <th scope="row"><?= time_format_dw($yyyymm.'-'.$i) ?></th>
       <td><?= $start_time ?></td>
       <td><?= $end_time ?></td>
       <td><?= $break_time ?></td>
