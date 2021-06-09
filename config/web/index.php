@@ -26,6 +26,8 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
   $modal_break_time = $_POST['modal_break_time'];
   $modal_comment = $_POST['modal_comment'];
 
+
+
   // 対象日のデータがあるかを確認
   $sql = "SELECT id FROM work WHERE user_id = :user_id AND date = :date LIMIT 1";
   $stmt = $pdo->prepare($sql);
@@ -34,9 +36,11 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
   $stmt->execute();
   $work = $stmt->fetch();
 
+
+
   if($work){
     // 対象日のデータがあればUPDATE
-    $sql = "UPDATE work SET start_time = :start_time,end_time = :end_time,break_time = :break_time,comment = :comment WHERE id = :id";
+    $sql ="UPDATE work SET start_time = :start_time,end_time = :end_time,break_time = :break_time,comment = :comment WHERE id = :id";
     $stmt = $pdo->prepare($sql);
     $stmt->bindValue(':id',(int)$work['id'],PDO::PARAM_INT);
     $stmt->bindValue(':start_time',$modal_start_time,PDO::PARAM_STR);
@@ -46,7 +50,7 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
     $stmt->execute();
   }else{
     // 対象日のデータが無ければINSERT
-    $sql = "INSERT INTO work (user_id,date,start_time, end_time, break_time, comment)VALUES(:user_id, :date, :start_time, :end_time, :break_time, :comment)";
+    $sql ="INSERT INTO work (user_id,date,start_time, end_time, break_time, comment)VALUES(:user_id, :date, :start_time, :end_time, :break_time, :comment)";
     $stmt = $pdo->prepare($sql);
     $stmt->bindValue(':user_id',(int)$session_user['id'],PDO::PARAM_INT);
     $stmt->bindValue(':date',$target_date,PDO::PARAM_STR);
@@ -60,7 +64,7 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
 
 }
 
-// var_dump($session_user);
+// var_dump($target_date);
 // exit;
 
 // ２．ユーザーの業務日報データを取得
@@ -193,7 +197,7 @@ if($today_work){
       <td><?= $end_time ?></td>
       <td><?= $break_time ?></td>
       <td><?= $comment ?></td>
-      <td><button type="button" class="btn btn-default h-auto py-0" data-toggle="modal" data-target="#inputModal" data-day="<?= time_format_dw($yyyymm.'-'.sprintf('%02d',$i)) ?>"><i class="fas fa-pencil-alt"></i></button></td>
+      <td><button type="button" class="btn btn-default h-auto py-0" data-toggle="modal" data-target="#inputModal" data-day="<?= ($yyyymm.'-'.sprintf('%02d',$i)) ?>"><i class="fas fa-pencil-alt"></i></button></td>
     </tr>
     <?php endfor; ?>
   </tbody>
@@ -249,9 +253,9 @@ if($today_work){
             </div>
           </div>
             <div class="model-footer">
-              <button type="submit" class="btn btn-primary text-white rounded-pill px-5 mt-3">登録</button>
-            </div>
-      </div>
+              <button type="submit" class="btn btn-primary text-white rounded-pill px-5 ">登録</button>
+          </div>
+       </div>
     </div>
   </div>
   <input type="hidden" id="target_date" name="target_date">
@@ -269,29 +273,31 @@ if($today_work){
     <?php endif; ?>
 
     $('#start_btn').click(function(){
-      const now = new Date();
-      const hour = now.getHours().toString().padStart(2,'0');
-      const minute = now.getMinutes().toString().padStart(2,'0');
-      $('#modal_start_time').val(hour+':'+minute);
+      const now = new Date()
+      const hour = now.getHours().toString().padStart(2,'0')
+      const minute = now.getMinutes().toString().padStart(2,'0')
+      $('#modal_start_time').val(hour+':'+minute)
     })
     $('#end_btn').click(function(){
       const now = new Date();
-      const hour = now.getHours().toString().padStart(2,'0');
-      const minute = now.getMinutes().toString().padStart(2,'0');
-      $('#modal_end_time').val(hour+':'+minute);
+      const hour = now.getHours().toString().padStart(2,'0')
+      const minute = now.getMinutes().toString().padStart(2,'0')
+      $('#modal_end_time').val(hour+':'+minute)
     })
 
     $('#inputModal').on('show.bs.modal',function(event){
       var button = $(event.relatedTarget)
       var target_day = button.data('day')
+      console.log(target_day)
 
-    //  編集ボタンが押されたときに対象日のデータを取得
+      //  編集ボタンが押されたときに対象日のデータを取得
       var day = button.closest('tr').children('th')[0].innerText
       var start_time = button.closest('tr').children('td')[0].innerText
       var end_time = button.closest('tr').children('td')[1].innerText
       var break_time = button.closest('tr').children('td')[2].innerText
       var comment = button.closest('tr').children('td')[3].innerText
 
+      // 取得したデータをモーダルに設定
       $('#modal_day').text(day)
       $('#modal_start_time').val(start_time)
       $('#modal_end_time').val(end_time)
@@ -299,7 +305,6 @@ if($today_work){
       $('#modal_comment').val(comment)
       $('#target_date').val(target_day)
     })
-
     </script>
 
   </body>
