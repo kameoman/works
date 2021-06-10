@@ -1,11 +1,18 @@
 <?php
 
-session_start();
+try{
+  session_start();
 
-$_SESSION = array();
+  $_SESSION = array();
 
-session_destroy();
+  session_destroy();
 
-header('Location:/login.php');
+  header('Location:/login.php');
+
+} catch (Exception $e){
+  //エラーの時の処理
+  header('Location:/error.php');
+  exit;
+}
 
 ?>
